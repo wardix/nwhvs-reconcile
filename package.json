@@ -1,0 +1,20 @@
+{
+  "name": "nwhvs",
+  "module": "src/main.ts",
+  "scripts": {
+    "dev": "bun run --hot src/main.ts",
+    "build": "bun build --minify --env disable --outfile dist/main.js --target bun src/main.ts",
+    "buildexe": "bun build --compile --env inline --outfile dist/nwhvs-reconcile.exe --target bun-windows-x64-baseline src/main.ts"
+  },
+  "dependencies": {
+    "@types/minimist": "^1.2.5",
+    "form-data": "^4.0.2",
+    "minimist": "^1.2.8",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/xml2js": "^0.4.14",
+    "typescript": "^5.7.2"
+  }
+}
