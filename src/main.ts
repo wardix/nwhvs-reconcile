@@ -199,6 +199,7 @@ async function main(): Promise<void> {
           method: 'GET',
           baseUrl,
           uri: '/ISAPI/System/deviceInfo',
+          responseType: 'text',
           httpsAgent,
         },
         digestContext,
