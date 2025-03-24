@@ -16,63 +16,6 @@ import { formatDate, getFormattedTimezoneOffset } from './utils/date'
 import { buildRequestEventPostData } from './utils/attendance'
 import { xmlParser } from './utils/xml-parser'
 
-// Function to create a request from FormData for use with fetch in Node.js
-async function createFormDataRequest(
-  url: string,
-  formData: FormData,
-  token: string,
-) {
-  return new Promise<Response>(async (resolve, reject) => {
-    try {
-      // Create options for the fetch request
-      const options: RequestInit = {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...formData.getHeaders(),
-        },
-      }
-
-      // Node.js specific: Convert FormData to a Buffer and use it as the body
-      formData.getLength(async (err: Error | null, length: number) => {
-        if (err) {
-          reject(err)
-          return
-        }
-
-        // Set the content length header
-        options.headers = {
-          ...options.headers,
-          'Content-Length': length.toString(),
-        }
-
-        // Get the form data as a Buffer
-        const buffer = await new Promise<Buffer>(
-          (resolveBuffer, rejectBuffer) => {
-            const chunks: any[] = []
-            formData.on('data', (chunk: any) => chunks.push(chunk))
-            formData.on('end', () => resolveBuffer(Buffer.concat(chunks)))
-            formData.on('error', (err: Error) => rejectBuffer(err))
-          },
-        )
-
-        // Use the buffer as the request body
-        options.body = buffer
-
-        // Make the fetch request
-        try {
-          const response = await fetch(url, options)
-          resolve(response)
-        } catch (fetchError) {
-          reject(fetchError)
-        }
-      })
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-
 async function main(): Promise<void> {
   const args = minimist(process.argv, {
     string: ['period-start', 'period-end'],
@@ -294,12 +237,14 @@ async function main(): Promise<void> {
           formData.append('gate_name', deviceName)
 
           try {
-            // Use our custom function to handle FormData with fetch
-            const submitResp = await createFormDataRequest(
-              ATTENDANCE_API_URL,
-              formData,
-              token,
-            )
+            const submitResp = await fetch(ATTENDANCE_API_URL, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                ...formData.getHeaders(),
+              },
+              body: formData.getBuffer(),
+            })
 
             if (!submitResp.ok) {
               throw new Error(`HTTP error! status: ${submitResp.status}`)
